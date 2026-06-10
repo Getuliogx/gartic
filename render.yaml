@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: gos-wos-mod-render
+    name: gos-wos-mods-forward-any-command
     env: node
     plan: free
     buildCommand: npm install
@@ -8,5 +8,5 @@ services:
     envVars:
       - key: TWITCH_CHANNEL
         value: xyzgx
-      - key: COMANDOS_START
-        value: "!start,!iniciar,!gos,!wos"
+      - key: COMANDOS_PERMITIDOS
+        value: ""

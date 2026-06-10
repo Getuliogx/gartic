@@ -1,52 +1,44 @@
-# GOS/WOS Mod Render
+# GOS/WOS - comandos configuráveis
 
-Servidor para permitir que mods da Twitch usem comandos no chat para clicar no START do Gartic On Stream / Words On Stream no navegador do host.
+Essa versão corrige o erro de comandos errados.
 
-## Arquivos
+O servidor não tenta adivinhar comandos.
+Ele envia QUALQUER comando começando com ! que venha de mod/streamer.
 
-- `server.js`: servidor Node.js para o Render.
-- `package.json`: dependências.
-- `render.yaml`: opcional para deploy automático.
-- `violentmonkey-gos-wos-render.js`: script que fica no navegador do host/streamer.
+Depois o Violentmonkey usa o MAPA no topo do script para decidir o que fazer.
 
-## Como usar no GitHub + Render
+## Arquivos Render
 
-1. Crie um repositório no GitHub.
-2. Envie estes arquivos para o repositório:
-   - `server.js`
-   - `package.json`
-   - `render.yaml`
+Substitua no GitHub/Render:
 
-3. No Render:
-   - New > Web Service
-   - Conecte seu repositório do GitHub
-   - Environment: Node
-   - Build Command: `npm install`
-   - Start Command: `npm start`
+- server.js
+- package.json
+- render.yaml
 
-4. Em Environment Variables no Render:
-   - `TWITCH_CHANNEL` = nome do canal sem @
-   - `COMANDOS_START` = `!start,!iniciar,!gos,!wos`
+Depois faça redeploy.
 
-5. Depois do deploy, copie a URL do Render.
-   Exemplo:
-   `https://gos-wos-mod-render.onrender.com`
+## Script Violentmonkey
 
-6. Abra `violentmonkey-gos-wos-render.js` e troque:
-   `const RENDER_URL = "https://SEU-APP.onrender.com";`
+Use:
 
-   Pela URL real do seu Render.
+- gos_wos_violentmonkey_configuravel.user.js
 
-7. Instale esse script no Violentmonkey.
+## Onde mudar comandos
 
-8. Abra o GOS/WOS no navegador do host:
-   - `https://gos.gg/system`
-   - `https://wos.gg/pt`
+No topo do script Violentmonkey existe:
 
-9. Um mod manda no chat:
-   - `!start`
-   - `!iniciar`
-   - `!gos`
-   - `!wos`
+const MAPA = {
+  start: ["!start", "!iniciar"],
+  next: ["!next", "!skip", "!pular", "!passar", "!proximo", "!próximo"],
+  reset: ["!reset", "!restart", "!reiniciar"],
+  stop: ["!stop", "!parar"]
+};
 
-O servidor verifica se a pessoa é mod ou streamer. Se for, manda o navegador clicar no START.
+Coloque ali os comandos corretos do jogo.
+
+## Testes sem chat
+
+F8 = start
+F9 = next
+F10 = reset
+F11 = stop
