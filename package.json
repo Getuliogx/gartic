@@ -1,0 +1,17 @@
+{
+  "name": "gos-wos-mod-render",
+  "version": "1.0.0",
+  "description": "Controle GOS/WOS por comandos de mods da Twitch via Render + Violentmonkey",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.3",
+    "tmi.js": "^1.8.5",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

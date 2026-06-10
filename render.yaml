@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: gos-wos-mod-render
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: TWITCH_CHANNEL
+        value: xyzgx
+      - key: COMANDOS_START
+        value: "!start,!iniciar,!gos,!wos"
