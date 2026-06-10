@@ -6,9 +6,8 @@ const tmi = require("tmi.js");
 const PORT = process.env.PORT || 3000;
 const CANAL = (process.env.TWITCH_CHANNEL || "xyzgx").toLowerCase();
 
-// Se deixar vazio, qualquer comando começando com ! vindo de mod/streamer é enviado.
-// Exemplo para limitar:
-// COMANDOS_PERMITIDOS=!start,!skip,!pular
+// Deixe vazio para aceitar qualquer comando começando com ! de mod/streamer.
+// Se quiser limitar, coloque no Render: COMANDOS_PERMITIDOS=!start,!iniciar,!restart,!sair
 const COMANDOS_PERMITIDOS = String(process.env.COMANDOS_PERMITIDOS || "")
   .split(",")
   .map(x => x.trim().toLowerCase())
@@ -22,11 +21,11 @@ let paginas = new Set();
 
 app.get("/", (req, res) => {
   res.type("text").send(
-`GOS/WOS Mod Server - Forward Any Command
+`GOS/WOS FINAL ON
 Canal: ${CANAL}
-Modo: ${COMANDOS_PERMITIDOS.length ? "somente lista permitida" : "qualquer comando com !"}
+Modo: ${COMANDOS_PERMITIDOS.length ? "lista permitida" : "qualquer comando com ! vindo de mod/streamer"}
 Permitidos: ${COMANDOS_PERMITIDOS.join(", ") || "todos"}
-Páginas conectadas: ${paginas.size}`
+Paginas conectadas: ${paginas.size}`
   );
 });
 
@@ -34,8 +33,7 @@ app.get("/health", (req, res) => {
   res.json({
     ok: true,
     canal: CANAL,
-    modo: COMANDOS_PERMITIDOS.length ? "lista" : "todos",
-    comandos_permitidos: COMANDOS_PERMITIDOS,
+    permitidos: COMANDOS_PERMITIDOS,
     paginas: paginas.size
   });
 });
@@ -47,8 +45,7 @@ wss.on("connection", (ws) => {
   ws.send(JSON.stringify({
     acao: "status",
     canal: CANAL,
-    modo: COMANDOS_PERMITIDOS.length ? "lista" : "todos",
-    comandosPermitidos: COMANDOS_PERMITIDOS
+    permitidos: COMANDOS_PERMITIDOS
   }));
 
   ws.on("close", () => {
@@ -58,9 +55,9 @@ wss.on("connection", (ws) => {
 });
 
 function broadcast(obj) {
-  const msg = JSON.stringify(obj);
+  const txt = JSON.stringify(obj);
   for (const ws of paginas) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+    if (ws.readyState === WebSocket.OPEN) ws.send(txt);
   }
 }
 
@@ -69,46 +66,43 @@ const client = new tmi.Client({
   channels: [CANAL]
 });
 
-client.connect().catch(err => console.error("[TMI] Erro:", err));
+client.connect().catch(err => console.error("[TMI] Erro ao conectar:", err));
 
 client.on("connected", () => {
   console.log("[TMI] Conectado ao chat:", CANAL);
-  console.log("[TMI] Modo:", COMANDOS_PERMITIDOS.length ? COMANDOS_PERMITIDOS.join(", ") : "qualquer comando com !");
 });
 
 client.on("message", (channel, tags, message, self) => {
   if (self) return;
 
-  const textoOriginal = String(message || "").trim();
-  const texto = textoOriginal.toLowerCase();
+  const original = String(message || "").trim();
+  const lower = original.toLowerCase();
+  if (!lower.startsWith("!")) return;
 
-  // Só pega comando com !
-  if (!texto.startsWith("!")) return;
+  const base = lower.split(/\s+/)[0];
 
-  // Se COMANDOS_PERMITIDOS foi configurado, respeita a lista.
-  const comandoBase = texto.split(/\s+/)[0];
-  if (COMANDOS_PERMITIDOS.length && !COMANDOS_PERMITIDOS.includes(comandoBase)) return;
+  if (COMANDOS_PERMITIDOS.length && !COMANDOS_PERMITIDOS.includes(base)) return;
 
   const usuario = tags["display-name"] || tags.username || "alguém";
   const badges = tags.badges || {};
   const isBroadcaster = !!badges.broadcaster || tags.username?.toLowerCase() === CANAL;
-  const isModerator = tags.mod === true || tags.mod === "1" || !!badges.moderator;
+  const isMod = tags.mod === true || tags.mod === "1" || !!badges.moderator;
 
-  if (!isBroadcaster && !isModerator) {
-    console.log(`[BLOQUEADO] ${usuario} tentou ${textoOriginal}, mas não é mod/streamer.`);
+  if (!isBroadcaster && !isMod) {
+    console.log("[BLOQUEADO]", usuario, original);
     return;
   }
 
-  console.log(`[OK] ${usuario}: ${textoOriginal}. Enviando para ${paginas.size} página(s).`);
+  console.log("[OK]", usuario, original, "->", paginas.size, "página(s)");
 
   broadcast({
     acao: "comando",
     usuario,
-    comando: textoOriginal,
-    comandoLower: texto,
-    comandoBase,
+    comando: original,
+    comandoLower: lower,
+    comandoBase: base,
     ts: Date.now()
   });
 });
 
-server.listen(PORT, () => console.log(`[HTTP] Porta ${PORT}`));
+server.listen(PORT, () => console.log("[HTTP] Porta", PORT));

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: gos-wos-mods-forward-any-command
+    name: gos-wos-final-violentmonkey
     env: node
     plan: free
     buildCommand: npm install

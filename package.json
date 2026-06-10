@@ -1,6 +1,6 @@
 {
-  "name": "gos-wos-mods-forward-any-command",
-  "version": "3.0.0",
+  "name": "gos-wos-final-violentmonkey",
+  "version": "4.0.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
